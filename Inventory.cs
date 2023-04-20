@@ -19,7 +19,7 @@ public class Inventory
     {
         if(SpaceOccupied() + item.Size <= Capacity)
         {
-            Items.Add(item);
+            TryStackAdd(item);
             return true;
         }
         else
@@ -53,54 +53,7 @@ public class Inventory
         item = new Item();
         return false;
     }
-    public bool TryGet(Dictionary<string, object> properties, out Item item)
-    {
-        foreach (var i in Items)
-        {
-            if (PropertyMatch(properties,i))
-            {
-                item = i;
-                return true;
-            }
-        }
-        item = new Item();
-        return false;
-    }
-    public bool TryGet(Property property, out Item item)
-    {
-        foreach (var i in Items)
-        {
-            if (i.Properties.ContainsKey(property.Name))
-            {
-                if (i.Properties[property.Name] == property.Value)
-                {
-                    item = i;
-                    return true;
-                }                
-            }
-        }
-        item = new Item();
-        return false;
-    }
-    public bool TryGet(int itemId ,Property property, out Item item)
-    {
-        foreach (var i in Items)
-        {
-            if(i.ID == itemId)
-            {
-                if (i.Properties.ContainsKey(property.Name))
-                {
-                    if (i.Properties[property.Name] == property.Value)
-                    {
-                        item = i;
-                        return true;
-                    }
-                }
-            }
-        }
-        item = new Item();
-        return false;
-    }
+    
     public bool TryRemoveFirst(int itemID)
     {
         for (int i = 0; i < Items.Count; i++)
@@ -137,11 +90,36 @@ public class Inventory
         }
         return false;
     }
+    private bool TryStackAdd(Item i)
+    {
+        if(SpaceOccupied() + i.Size <= Capacity)
+        {
+            //method in complete have to still impliment
+            // if item isnt stackable or does not exist
+            var r = Get(i.ID);
+            if (r.Success)
+            {
+                if(r.Value.ID == i.ID && r.Value.Data == i.Data)
+                {
+                    if(r.Value.Stackable)
+                    {
+                        ChangeSize(r.Value,i.Size);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     public Result<bool> Add(Item item){
         if(SpaceOccupied() + item.Size <= Capacity)
         {
-            Items.Add(item);
+            TryStackAdd(item);
             return new Result<bool>(){Success = true,Value = true};
         }
         else
@@ -208,66 +186,20 @@ public class Inventory
     {
         foreach (var i in Items)
         {
-            if (PropertyMatch(properties, i))
-            {
-                return new Result<Item>() { Success = true,Value = i };
-            }
+            
         }
         return new Result<Item>() { Success = false,Value = new Item()};
     }
-    public Result<Item> Get(Property property)
+    public Result<bool> ChangeSize(Item item, int change)
     {
-        foreach (var i in Items)
+        if (Items.Contains(item))
         {
-            if (i.Properties.ContainsKey(property.Name))
-            {
-                if (i.Properties[property.Name] == property.Value)
-                {
-                    return new Result<Item>() { Success = true,Value = i};
-                }
-            }
+            Items[Items.IndexOf(item)].Size += change;
+            return new Result<bool>(true, true);
         }
-        return new Result<Item>() { Success = false,Value = new Item()};
-    }
-    public Result<Item> Get(int itemId, Property property)
-    {
-        foreach (var i in Items)
-        {
-            if (i.ID == itemId)
-            {
-                if (i.Properties.ContainsKey(property.Name))
-                {
-                    if (i.Properties[property.Name] == property.Value)
-                    {
-                        return new Result<Item>() { Success = true,Value = i};
-                    }
-                }
-            }
-        }
-        return new Result<Item>() { Success = false,Value = new Item()};
+        return new Result<bool>(false,false);
     }
 
-    public bool PropertyMatch(Dictionary<string,object> match,Item test)
-    {
-        foreach (var key in match.Keys)
-        {
-            if (test.Properties.ContainsKey(key))
-            {
-                if (match[key] != test.Properties[key])
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    public bool AreItemsIdentical(Item item1 ,Item item2){
-        return false;
-    }
     public int SpaceOccupied()
     {
         int space = 0;
@@ -282,13 +214,19 @@ public struct Result<T>
 {
     public bool Success {get;set;}
     public T Value {get;set;}
+    public Result(bool success, T value)
+    {
+        Success = success;
+        Value = value;
+    }
 }
-public struct Item
+public class Item
 {
     public string Name { get; set; }
     public int ID { get; set; }
     public int Size { get; set; }
-    public Dictionary<string, object> Properties { get; set; }
+    public bool Stackable { get; set; }
+    public string Data { get; set; }
 }
 public struct Property
 {
