@@ -265,6 +265,9 @@ public class Inventory
         }
         return true;
     }
+    public bool AreItemsIdentical(Item item1 ,Item item2){
+        return false;
+    }
     public int SpaceOccupied()
     {
         int space = 0;
