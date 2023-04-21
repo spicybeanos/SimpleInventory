@@ -48,7 +48,6 @@ public class InventoryBrowser : MonoBehaviour
             }
             ) ;
         CurrentItem = inventory.GetAt(0).Success ? inventory.GetAt(0).Value : new Item();
-
     }
 
     private void Update()

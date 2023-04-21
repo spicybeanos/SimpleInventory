@@ -122,7 +122,6 @@ public class Inventory
                 Items.Add(i);
                 return true;
             }
-            return false;
         }
         else
         {
