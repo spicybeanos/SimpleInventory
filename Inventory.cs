@@ -106,7 +106,21 @@ public class Inventory
                         ChangeSize(r.Value,i.Size);
                         return true;
                     }
+                    else
+                    {
+                        Items.Add(i);
+                        return true;
+                    }
+                }else
+                {
+                    Items.Add(i);
+                    return true;
                 }
+            }
+            else
+            {
+                Items.Add(i);
+                return true;
             }
             return false;
         }
@@ -151,7 +165,7 @@ public class Inventory
     }
     public Result<Item> GetAt(int index)
     {
-        if (index >= 0 && index < Capacity)
+        if (index >= 0 && index < Items.Capacity)
         {
             return new Result<Item>() { Success = true, Value = Items[index] };
         }

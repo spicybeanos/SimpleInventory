@@ -12,6 +12,7 @@ public class InventoryBrowser : MonoBehaviour
     public Inventory inventory;
     public int Capacity = 10;
     public int CurrentSlot = 0;
+    public Item CurrentItem = new Item();
     public TextMeshProUGUI itemName;
     public bool AutoCreateComponents = true;
 
@@ -40,23 +41,26 @@ public class InventoryBrowser : MonoBehaviour
         inventory.AddRange(
             new List<Item>()
             {
-                new Item() { ID = 0, Name = "Rock", Size = 1, Properties = new Dictionary<string, object>() { { "type", "crafting_item" } } },
-                new Item() { ID = 1, Name = "Stick", Size = 1, Properties = new Dictionary<string, object>() { { "type", "crafting_item" } } },
-                new Item() { ID = 2, Name = "Ore", Size = 1, Properties = new Dictionary<string, object>() { { "type", "crafting_item" } } },
-                new Item() { ID = 3, Name = "Sword", Size = 5, Properties = new Dictionary<string, object>() { { "type", "weapon" } } },
+                new Item() { ID = 0, Name = "Rock", Size = 1 },
+                new Item() { ID = 1, Name = "Stick", Size = 1 },
+                new Item() { ID = 2, Name = "Ore", Size = 1 },
+                new Item() { ID = 3, Name = "Sword", Size = 5 },
             }
             ) ;
+        CurrentItem = inventory.GetAt(0).Success ? inventory.GetAt(0).Value : new Item();
+
     }
 
     private void Update()
     {
+        itemName.text = CurrentItem.Name;
         if(Input.mouseScrollDelta.y > 0)
         {
-            itemName.text = ScrollAhead().Name;
+            CurrentItem = ScrollAhead();
         }
         if(Input.mouseScrollDelta.y < 0)
         {
-            itemName.text = ScrollBehind().Name;
+            CurrentItem = ScrollBehind();
         }
     }
 
