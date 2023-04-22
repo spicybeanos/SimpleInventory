@@ -241,7 +241,7 @@ public class Item
     public bool Stackable { get; set; }
     public string Data { get; set; }
 }
-public struct Property
+public class Property
 {
     public string Name { get; set; }
     public object Value { get; set; }
