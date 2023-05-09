@@ -15,6 +15,13 @@ public class Inventory
         Items = new List<Item>();
     }
 
+    /*
+     if(TryAdd(col.Getcomp<ItemObject>().item)){
+        destry();
+      }
+
+     */
+
     public bool TryAdd(Item item)
     {
         if(SpaceOccupied() + item.Size <= Capacity)
@@ -96,7 +103,7 @@ public class Inventory
         {
             //method in complete have to still impliment
             // if item isnt stackable or does not exist
-            var r = Get(i.ID);
+            Result<Item> r = Get(i.ID);
             if (r.Success)
             {
                 if(r.Value.ID == i.ID && r.Value.Data == i.Data)
@@ -129,15 +136,15 @@ public class Inventory
         }
     }
 
-    public Result<bool> Add(Item item){
+    public Result<int> Add(Item item){
         if(SpaceOccupied() + item.Size <= Capacity)
         {
             TryStackAdd(item);
-            return new Result<bool>(){Success = true,Value = true};
+            return new Result<int>(){Success = true,Value = 0};
         }
         else
         {
-            return new Result<bool>(){Success = false,Value = false};
+            return new Result<int>(){Success = false,Value = -1};
         }
     }
     /// <summary>
