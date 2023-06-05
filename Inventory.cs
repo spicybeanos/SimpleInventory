@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting.ReorderableList;
@@ -16,23 +17,9 @@ public class Inventory
     }
 
     /*
-     if(TryAdd(col.Getcomp<ItemObject>().item)){
-        destry();
-      }
-
-     */
-
     public bool TryAdd(Item item)
     {
-        if(SpaceOccupied() + item.Size <= Capacity)
-        {
-            TryStackAdd(item);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return StackAdd(item).Success;
     }
     public bool TryGet(string itemName,out Item item)
     {
@@ -97,55 +84,74 @@ public class Inventory
         }
         return false;
     }
-    private bool TryStackAdd(Item i)
+    */
+    /// <summary>
+    ///  Tries to add the item to the inventory
+    /// </summary>
+    /// <param name="i">Item to be added</param>
+    /// <returns>Whether the item was completely added and the item size amount that has not been added if the item wasn't completely added</returns>
+    private Result<int> StackAdd(Item i)
     {
+        int sizeAdd = 0;
+        bool addedComplete = false;
         if(SpaceOccupied() + i.Size <= Capacity)
         {
-            //method in complete have to still impliment
-            // if item isnt stackable or does not exist
-            Result<Item> r = Get(i.ID);
-            if (r.Success)
+            sizeAdd = i.Size;
+            addedComplete = true;
+        }
+        else if(SpaceOccupied() <= Capacity)
+        {
+            sizeAdd = Capacity - SpaceOccupied();
+            addedComplete = false;
+        }
+        else
+        {
+            return new Result<int>(false,i.Size);
+        }
+
+        //method in complete have to still impliment
+        // if item isnt stackable or does not exist
+        Result<Item> r = Get(i.ID);
+        if (r.Success)
+        {
+            if (r.Value.ID == i.ID && r.Value.Data == i.Data)
             {
-                if(r.Value.ID == i.ID && r.Value.Data == i.Data)
+                if (r.Value.Stackable)
                 {
-                    if(r.Value.Stackable)
-                    {
-                        ChangeSize(r.Value,i.Size);
-                        return true;
-                    }
-                    else
-                    {
-                        Items.Add(i);
-                        return true;
-                    }
-                }else
+                    ChangeSize(r.Value, sizeAdd);
+                    return new Result<int>(addedComplete,i.Size - sizeAdd);
+                }
+                else if (addedComplete)
                 {
                     Items.Add(i);
-                    return true;
+                    return new Result<int>(true,0);
+                }
+                else
+                {
+                    return new Result<int>(false,i.Size);
                 }
             }
             else
             {
-                Items.Add(i);
-                return true;
+                Items.Add(new Item(i,sizeAdd));
+                return new Result<int>(addedComplete,i.Size - sizeAdd);
             }
         }
         else
         {
-            return false;
+            Items.Add(new Item(i, sizeAdd));
+            return new Result<int>(addedComplete, i.Size - sizeAdd);
         }
     }
-
-    public Result<int> Add(Item item){
-        if(SpaceOccupied() + item.Size <= Capacity)
-        {
-            TryStackAdd(item);
-            return new Result<int>(){Success = true,Value = 0};
-        }
-        else
-        {
-            return new Result<int>(){Success = false,Value = -1};
-        }
+    
+    /// <summary>
+    /// Add item to the inventory
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
+    public Result<int> Add(Item item)
+    {
+        return StackAdd(item);
     }
     /// <summary>
     /// Tries to add <paramref name="items"/> to inventory.
@@ -158,7 +164,8 @@ public class Inventory
         int ctr = 0;
         foreach (var item in items)
         {
-            if (TryAdd(item))
+            var res = Add(item);
+            if (res.Success)
             {
                 ctr++;
             }
@@ -190,6 +197,17 @@ public class Inventory
         }
         return new Result<Item>(){Success = false};
     }
+    public Result<Item> Get(int itemID,string data)
+    {
+        foreach (var i in Items)
+        {
+            if (i.ID == itemID && i.Data == data)
+            {
+                return new Result<Item>() { Success = true, Value = i };
+            }
+        }
+        return new Result<Item>() { Success = false };
+    }
     public Result<Item> Get(string itemName)
     {
         foreach (var i in Items)
@@ -202,20 +220,19 @@ public class Inventory
          
         return new Result<Item>() { Success = false,Value = new Item() };
     }
-    public Result<Item> Get(Dictionary<string, object> properties)
-    {
-        foreach (var i in Items)
-        {
-            
-        }
-        return new Result<Item>() { Success = false,Value = new Item()};
-    }
     public Result<bool> ChangeSize(Item item, int change)
     {
         if (Items.Contains(item))
         {
-            Items[Items.IndexOf(item)].Size += change;
-            return new Result<bool>(true, true);
+            if(Items[Items.IndexOf(item)].Size + change <= Capacity)
+            {
+                Items[Items.IndexOf(item)].Size += change;
+                return new Result<bool>(true, true);
+            }
+            else
+            {
+                return new Result<bool>(false, false);
+            }
         }
         return new Result<bool>(false,false);
     }
@@ -230,7 +247,7 @@ public class Inventory
         return space;
     }
 }
-public struct Result<T>
+public class Result<T>
 {
     public bool Success {get;set;}
     public T Value {get;set;}
@@ -239,17 +256,8 @@ public struct Result<T>
         Success = success;
         Value = value;
     }
-}
-public class Item
-{
-    public string Name { get; set; }
-    public int ID { get; set; }
-    public int Size { get; set; }
-    public bool Stackable { get; set; }
-    public string Data { get; set; }
-}
-public class Property
-{
-    public string Name { get; set; }
-    public object Value { get; set; }
+    public Result()
+    {
+
+    }
 }
