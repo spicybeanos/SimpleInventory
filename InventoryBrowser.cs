@@ -1,10 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditorInternal;
 
 public class InventoryBrowser : MonoBehaviour
 {
@@ -19,7 +16,7 @@ public class InventoryBrowser : MonoBehaviour
     void Start()
     {
         inventory = new Inventory(Capacity);
-        if(itemName == null)
+        if (itemName == null)
         {
             if (AutoCreateComponents)
             {
@@ -41,23 +38,20 @@ public class InventoryBrowser : MonoBehaviour
         inventory.AddRange(
             new List<Item>()
             {
-                new Item() { ID = 0, Name = "Rock", Size = 1 },
-                new Item() { ID = 1, Name = "Stick", Size = 1 },
-                new Item() { ID = 2, Name = "Ore", Size = 1 },
-                new Item() { ID = 3, Name = "Sword", Size = 5 },
+                
             }
-            ) ;
+            );
         CurrentItem = inventory.GetAt(0).Success ? inventory.GetAt(0).Value : new Item();
     }
 
     private void Update()
     {
         itemName.text = CurrentItem.Name;
-        if(Input.mouseScrollDelta.y > 0)
+        if (Input.mouseScrollDelta.y > 0)
         {
             CurrentItem = ScrollAhead();
         }
-        if(Input.mouseScrollDelta.y < 0)
+        if (Input.mouseScrollDelta.y < 0)
         {
             CurrentItem = ScrollBehind();
         }

@@ -1,14 +1,10 @@
-using JetBrains.Annotations;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting.ReorderableList;
-using UnityEngine;
 
 public class Inventory
 {
-    
+
     public int Capacity { get; private set; }
-    public List<Item> Items { get;protected set; }
+    public List<Item> Items { get; protected set; }
 
     public Inventory(int capacity)
     {
@@ -93,20 +89,20 @@ public class Inventory
     private Result<int> StackAdd(Item i)
     {
         int sizeAdd = 0;
-        bool addedComplete = false;
-        if(SpaceOccupied() + i.Size <= Capacity)
+        bool addedAll = false;
+        if (SpaceOccupied() + i.Size <= Capacity)
         {
             sizeAdd = i.Size;
-            addedComplete = true;
+            addedAll = true;
         }
-        else if(SpaceOccupied() <= Capacity)
+        else if (SpaceOccupied() <= Capacity)
         {
             sizeAdd = Capacity - SpaceOccupied();
-            addedComplete = false;
+            addedAll = false;
         }
         else
         {
-            return new Result<int>(false,i.Size);
+            return new Result<int>(false, i.Size);
         }
 
         //method in complete have to still impliment
@@ -119,36 +115,41 @@ public class Inventory
                 if (r.Value.Stackable)
                 {
                     ChangeSize(r.Value, sizeAdd);
-                    return new Result<int>(addedComplete,i.Size - sizeAdd);
+                    return new Result<int>(addedAll, i.Size - sizeAdd);
                 }
-                else if (addedComplete)
+                else if (addedAll)
                 {
                     Items.Add(i);
-                    return new Result<int>(true,0);
+                    return new Result<int>(true, 0);
                 }
                 else
                 {
-                    return new Result<int>(false,i.Size);
+                    return new Result<int>(false, i.Size);
                 }
+            }
+            else if (i.Stackable)
+            {
+                Items.Add(new Item(i, sizeAdd));
+                return new Result<int>(addedAll, i.Size - sizeAdd);
             }
             else
             {
-                Items.Add(new Item(i,sizeAdd));
-                return new Result<int>(addedComplete,i.Size - sizeAdd);
+                return new Result<int>(false, i.Size);
             }
         }
         else
         {
             Items.Add(new Item(i, sizeAdd));
-            return new Result<int>(addedComplete, i.Size - sizeAdd);
+            return new Result<int>(addedAll, i.Size - sizeAdd);
         }
     }
-    
+
     /// <summary>
     /// Add item to the inventory
     /// </summary>
     /// <param name="item"></param>
-    /// <returns></returns>
+    /// <returns>Whether the item was completely added and 
+    /// the item size amount that has not been added if the item wasn't completely added</returns>
     public Result<int> Add(Item item)
     {
         return StackAdd(item);
@@ -174,7 +175,7 @@ public class Inventory
                 return new Result<int>() { Success = false, Value = ctr };
             }
         }
-        return new Result<int>() { Success = true ,Value = items.Count};
+        return new Result<int>() { Success = true, Value = items.Count };
     }
     public Result<Item> GetAt(int index)
     {
@@ -187,17 +188,18 @@ public class Inventory
             return new Result<Item>() { Success = false, Value = new Item() };
         }
     }
-    public Result<Item> Get(int itemID){
+    public Result<Item> Get(int itemID)
+    {
         foreach (var i in Items)
         {
             if (i.ID == itemID)
             {
-                return new Result<Item>(){Success = true,Value = i};
+                return new Result<Item>() { Success = true, Value = i };
             }
         }
-        return new Result<Item>(){Success = false};
+        return new Result<Item>() { Success = false };
     }
-    public Result<Item> Get(int itemID,string data)
+    public Result<Item> Get(int itemID, string data)
     {
         foreach (var i in Items)
         {
@@ -214,17 +216,17 @@ public class Inventory
         {
             if (i.Name == itemName)
             {
-                return new Result<Item>() { Success = true,Value = i };
+                return new Result<Item>() { Success = true, Value = i };
             }
         }
-         
-        return new Result<Item>() { Success = false,Value = new Item() };
+
+        return new Result<Item>() { Success = false, Value = new Item() };
     }
     public Result<bool> ChangeSize(Item item, int change)
     {
         if (Items.Contains(item))
         {
-            if(Items[Items.IndexOf(item)].Size + change <= Capacity)
+            if (Items[Items.IndexOf(item)].Size + change <= Capacity)
             {
                 Items[Items.IndexOf(item)].Size += change;
                 return new Result<bool>(true, true);
@@ -234,7 +236,7 @@ public class Inventory
                 return new Result<bool>(false, false);
             }
         }
-        return new Result<bool>(false,false);
+        return new Result<bool>(false, false);
     }
 
     public int SpaceOccupied()
@@ -249,8 +251,8 @@ public class Inventory
 }
 public class Result<T>
 {
-    public bool Success {get;set;}
-    public T Value {get;set;}
+    public bool Success { get; set; }
+    public T Value { get; set; }
     public Result(bool success, T value)
     {
         Success = success;

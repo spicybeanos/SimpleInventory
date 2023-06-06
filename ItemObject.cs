@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ItemObject : MonoBehaviour
@@ -8,5 +6,13 @@ public class ItemObject : MonoBehaviour
     public void PickMeUp(Inventory pickersInventory)
     {
         Result<int> res = pickersInventory.Add(item);
+        if (res.Success)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            item.Size = res.Value;
+        }
     }
 }
