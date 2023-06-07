@@ -5,6 +5,10 @@ using System.Linq;
 public class Item
 {
     public string Name { get; set; }
+    /*
+    i might change the id from an int to guid (uuid) cuz then it would in uniformity 
+    and get rid of the problem of having conflicting item ids for two different items
+     */
     public int ID { get; set; }
     public int Size { get; set; }
     public bool Stackable { get; set; }
@@ -30,6 +34,10 @@ public class Item
         Name = name; ID = (int)id; Size = size; Stackable = stackable; Data = data;
     }
 
+    /*
+     All the fucntions below are to help your make uniform items ad now screw shit up by
+     making duplicate 'rock' and 'Rock'. this  will cause it to not stack.
+     */
     public static readonly Dictionary<ItemIDs, Item> DefaultItem = new Dictionary<ItemIDs, Item>()
     {
         {ItemIDs.Rock,new Item("Rock",ItemIDs.Rock,1,true,"") },
@@ -42,15 +50,19 @@ public class Item
     /// </summary>
     /// <param name="ItemProperName">the name which exists in <see cref="ItemIDs"/></param>
     /// <returns></returns>
-    public static Item NewItem(string ItemProperName)
+    public static Result<Item> GetItem(string ItemProperName)
     {
         List<string> items = new List<string>();
         items.AddRange(Enum.GetNames(typeof(ItemIDs)));
         if(items.Contains(ItemProperName))
         {
             object result;
-            Enum.TryParse(typeof(ItemIDs), ItemProperName,out result);
+            if(Enum.TryParse(typeof(ItemIDs), ItemProperName,out result))
+            {
+                return new Result<Item>(true, DefaultItem[(ItemIDs)result]);
+            }
         }
+        return new Result<Item>(false, null);
     }
 }
 public enum ItemIDs
