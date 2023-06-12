@@ -95,7 +95,7 @@ public class Inventory
             sizeAdd = i.Size;
             addedAll = true;
         }
-        else if (SpaceOccupied() <= Capacity)
+        else if (SpaceOccupied() <= Capacity && i.Stackable)
         {
             sizeAdd = Capacity - SpaceOccupied();
             addedAll = false;
@@ -134,7 +134,15 @@ public class Inventory
             }
             else
             {
-                return new Result<int>(false, i.Size);
+                if (addedAll)
+                {
+                    Items.Add(i);
+                    return new Result<int>(addedAll, 0);
+                }
+                else
+                {
+                    return new Result<int>(false, i.Size);
+                }
             }
         }
         else
