@@ -4,12 +4,12 @@ public class Inventory
 {
 
     public int Capacity { get; private set; }
-    public List<Item> Items { get; protected set; }
+    public List<Slot> Items { get; protected set; }
 
     public Inventory(int capacity)
     {
         Capacity = capacity;
-        Items = new List<Item>();
+        Items = new List<Slot>();
     }
 
     /*
@@ -86,69 +86,69 @@ public class Inventory
     /// </summary>
     /// <param name="i">Item to be added</param>
     /// <returns>Whether the item was completely added and the item size amount that has not been added if the item wasn't completely added</returns>
-    private Result<int> StackAdd(Item i)
+    private Result<int> StackAdd(Slot s)
     {
-        int sizeAdd = 0;
+        int countAdd = 0;
         bool addedAll = false;
-        if (SpaceOccupied() + i.Size <= Capacity)
+        if (SpaceOccupied() + s.Size <= Capacity)
         {
-            sizeAdd = i.Size;
+            countAdd = s.Count;
             addedAll = true;
         }
-        else if (SpaceOccupied() <= Capacity && i.Stackable)
+        else if (SpaceOccupied() <= Capacity && s.Stackable)
         {
-            sizeAdd = Capacity - SpaceOccupied();
+            countAdd = (Capacity - SpaceOccupied())/s.item.Size;
             addedAll = false;
         }
         else
         {
-            return new Result<int>(false, i.Size);
+            return new Result<int>(false, s.Size);
         }
 
         //method in complete have to still impliment
         // if item isnt stackable or does not exist
-        Result<Item> r = Get(i.ID);
+        Result<Item> r = Get(s.ID);
         if (r.Success)
         {
-            if (r.Value.ID == i.ID && r.Value.Data == i.Data)
+            if (r.Value.ID == s.ID && r.Value.Data == s.Data)
             {
                 if (r.Value.Stackable)
                 {
-                    ChangeSize(r.Value, sizeAdd);
-                    return new Result<int>(addedAll, i.Size - sizeAdd);
+                    ChangeSize(r.Value, countAdd);
+                    return new Result<int>(addedAll, s.Count - countAdd);
                 }
                 else if (addedAll)
                 {
-                    Items.Add(i);
+                    Items.Add(s);
                     return new Result<int>(true, 0);
                 }
                 else
                 {
-                    return new Result<int>(false, i.Size);
+                    return new Result<int>(false, s.Count);
                 }
             }
-            else if (i.Stackable)
+            else if (s.Stackable)
             {
-                Items.Add(new Item(i, sizeAdd));
-                return new Result<int>(addedAll, i.Size - sizeAdd);
+                Items.Add(new Slot(s.item,));
+                return new Result<int>(addedAll, s.Count - countAdd);
             }
             else
             {
                 if (addedAll)
                 {
-                    Items.Add(i);
+                    Items.Add(s);
                     return new Result<int>(addedAll, 0);
                 }
                 else
                 {
-                    return new Result<int>(false, i.Size);
+                    return new Result<int>(false, s.Size);
                 }
             }
         }
         else
         {
-            Items.Add(new Item(i, sizeAdd));
-            return new Result<int>(addedAll, i.Size - sizeAdd);
+            Items.Add(new Slot(s.item, countAdd));
+            return new Result<int>(addedAll, s.Size - countAdd);
         }
     }
 
